@@ -83,36 +83,111 @@ public class DepartamentosController {
             return  ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(respuestaError);
         }
     }
+           //Esto sirve para Eliminar
+           // Indica que este método manejará peticiones HTTP DELETE que lleguen a la ruta "/{id}" (ej. /departamentos/5)
+           @DeleteMapping("/{id}")
+// Define un método público que devuelve un contenedor de respuesta HTTP (ResponseEntity) que adentro lleva tu clase personalizada 'ApiResponse'
+           public ResponseEntity<ApiResponse<DepartamentosDTO>> eliminarDepartamento(
+                   // Captura el parámetro "{id}" de la URL y lo convierte en una variable de tipo Long llamada 'id'
+                   @PathVariable Long id) {
 
-    @DeleteMapping("/{id}")
-    public ResponseEntity<ApiResponse<DepartamentosDTO>> eliminarDepartamento(@PathVariable Long id) {
-        try {
-            boolean respuesta = service.eliminarInfo(id);
-            if (respuesta) {
-                ApiResponse<DepartamentosDTO> respuestaExitosa = new ApiResponse<>(
-                        true,
-                        "Dato con ID" + id + "Eliminado exitosamente",
-                        null);
-                return ResponseEntity.status(HttpStatus.NO_CONTENT).body(respuestaExitosa);
+               // Inicia un bloque try-catch para capturar y manejar cualquier error inesperado que ocurra durante el proceso
+               try {
 
-            }
-            //Las siguientes lineas se ejecutaran solo si la eliminacion no se pudo completar
-            ApiResponse<DepartamentosDTO> respuestaNoRealizado = new ApiResponse<>(
-                    false,
-                    "El proceso de eliminacion no se pudo completar",
-                    null);
-            log.info("Departamento con ID: " + id + ", no fue encontrado");
+                   // Llama al servicio para eliminar el registro y guarda el resultado (true si se eliminó, false si no existía)
+                   boolean respuesta = service.eliminarInfo(id);
 
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(respuestaNoRealizado);
+                   // Evalúa si la eliminación fue exitosa (si 'respuesta' es true)
+                   if (respuesta) {
 
-        }
+                       // Instancia un nuevo objeto de respuesta exitosa. Parámetros: Éxito = true, Mensaje informativo, Datos = null (porque ya se eliminó)
+                       ApiResponse<DepartamentosDTO> respuestaExitosa = new ApiResponse<>(
+                               true,
+                               "Dato con ID " + id + " eliminado exitosamente", // Ojo: añadí un espacio aquí para que no se pegue el texto
+                               null);
 
-        catch (Exception e) {
-            //Log es un mensaje que queda registrado en el historial del servidor
-            log.error("Error critico , consulte con el admnistrador");
+                       // Retorna un estado HTTP 204 (NO_CONTENT) junto con el cuerpo de la respuesta exitosa en formato JSON
+                       return ResponseEntity.status(HttpStatus.NO_CONTENT).body(respuestaExitosa);
+
+                   } // Fin del bloque 'if'
+
+                   // Las siguientes líneas se ejecutarán solo si la eliminación no se pudo completar (cuando 'respuesta' es false)
+
+                   // Instancia un objeto de respuesta indicando que la operación falló. Parámetros: Éxito = false, Mensaje, Datos = null
+                   ApiResponse<DepartamentosDTO> respuestaNoRealizado = new ApiResponse<>(
+                           false,
+                           "El proceso de eliminación no se pudo completar",
+                           null);
+
+                   // Registra un mensaje informativo en la consola del servidor advirtiendo que el ID buscado no existía
+                   log.info("Departamento con ID: " + id + ", no fue encontrado");
+
+                   // Retorna un estado HTTP 404 (NOT_FOUND) junto con el cuerpo de la respuesta que explica que no se completó
+                   return ResponseEntity.status(HttpStatus.NOT_FOUND).body(respuestaNoRealizado);
+// Fin del bloque 'try'
+               }
+
+               // Atrapa cualquier excepción/error que haya ocurrido dentro del bloque 'try' para evitar que la aplicación se caiga por completo
+               catch (Exception e) {
+
+                   // Registra un mensaje de error crítico en la consola del servidor para que el programador pueda revisarlo
+                   log.error("Error crítico, consulte con el administrador");
+
+                   // Imprime en la consola toda la pila del error (la ruta exacta de los archivos y líneas donde falló el código)
+                   e.printStackTrace();
+
+                   // Instancia un objeto de respuesta amigable para el cliente. Parámetros: Éxito = false, Mensaje de error genérico, Datos = null
+                   ApiResponse<DepartamentosDTO> respuestaError = new ApiResponse<>(
+                           false,
+                           "Error inesperado, consulte con el administrador para solucionar el problema",
+                           null);
+
+                   // Retorna un estado HTTP 500 (INTERNAL_SERVER_ERROR) con el JSON de error para no exponer detalles técnicos sensibles al cliente
+                   return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(respuestaError);
+
+               } // Fin del bloque 'catch'
+
+           } // Fin del método eliminarDepartamento
+
+    @PutMapping("/{id}")
+    //@Valid sirve para que las validaciones que estan escritas en el DTO puedan ejecutarce
+    public ResponseEntity<ApiResponse<DepartamentosDTO>> actualizarData(@PathVariable Long id, @Valid @RequestBody DepartamentosDTO dto){
+        try{
+           DepartamentosDTO data = service.actualizar(id, dto);
+           if(data != null) {
+               log.info("Departamento con ID: " + id + " ha sido actualizado. ");
+               ApiResponse<DepartamentosDTO> respuestaExitosa = new ApiResponse<>(true, "Departamento con ID:" + id + " ha sido actualizadp. ", data);
+               return ResponseEntity.ok(respuestaExitosa);
+           }
+           log.warn("No se pudo completar la actualizacion del departamento con ID: " + id);
+           ApiResponse<DepartamentosDTO> repuestaNoCompletada = new ApiResponse<>( false, "No se pudo completar la actualizacion del departamento con ID: " + id);
+           return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(repuestaNoCompletada);
+        }catch (Exception e){
+            log.info("Error Critico a Actualizar el departamento con ID: " + id);
             e.printStackTrace();
-            ApiResponse<DepartamentosDTO> respuestaError = new ApiResponse<>(false, "Error inesperado , consulte con el administrador para solucionar el problema", null);
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(respuestaError);
+            ApiResponse<DepartamentosDTO> respuestaError = new ApiResponse<>(false,"Error critico al actualizar el departamento con ID: ", null);
+            return  ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(respuestaError);
+        }
+    }
+
+    @GetMapping("/{abr}")
+    public ResponseEntity<ApiResponse<DepartamentosDTO>> buscarPorAbreviatura(@PathVariable String abreviatura){
+        try{
+            DepartamentosDTO data = service.buscarDepartamentoAbreviatura(abreviatura);
+            if(data != null){
+                log.info("Se obtuvieron los datos del departamento con abreviatura " + abreviatura);
+                ApiResponse<DepartamentosDTO> respuestaExito = new ApiResponse<>(true, "\"Se obtuvieron los datos del departamento con abreviatura " + abreviatura , data);
+            return ResponseEntity.ok(respuestaExito);
+            }
+            log.warn("Departamento no encontrado " + abreviatura);
+            ApiResponse<DepartamentosDTO> respuestaNoEncontrada = new ApiResponse<>(
+                    false,"Departamento no encontrado: " + abreviatura);
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(respuestaNoEncontrada);
+        }catch (Exception e){
+            log.info("No hay departamentos regstitrado con ese Abreviatura");
+            e.printStackTrace();
+            ApiResponse<DepartamentosDTO> respuestaError = new ApiResponse<>(false,"Nose pudo completar la busqueda del ID: ", null);
+            return  ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(respuestaError);
         }
     }
 }

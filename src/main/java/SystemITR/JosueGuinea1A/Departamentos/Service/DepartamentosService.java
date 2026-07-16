@@ -84,4 +84,44 @@ public class DepartamentosService {
         }
         return false;
     }
+
+    public DepartamentosDTO actualizar(Long id, @Valid DepartamentosDTO dto) {
+        try {
+            //1. Buscar si el departamento realmente existe por su id
+            Optional<DepartamentosEntity> entidadOpcional = repo.findById(id);
+            //2.Verificar si objeto contiene valores (utilizando if)
+            if(entidadOpcional.isPresent()){
+                //2.1 Creamos un objeto de tipo entidad
+              DepartamentosEntity entidad = entidadOpcional.get();
+                //2.2 Convertir y asignar los DTOS (nuevos valores) a entidad
+                         entidad.setNombreDepto(dto.getNombreDepto());
+                         entidad.setAbreviatura(dto.getAbreviatura());
+                         entidad.setUbicacion(dto.getUbicacion());
+                //2.3 Actualizar los datos en la base de datos
+                  DepartamentosEntity datosGuardados = repo.save(entidad);
+                //2.4 Retornar la data convertida a DTO de forma previa
+                return convertirADTO(datosGuardados);
+            }
+
+            //3. Retornamos un null
+            return null;
+        }catch (Exception e){
+            log.error("Oops, ocurrio un error al procesar la informacion");
+            return  null;
+        }
+    }
+
+    public DepartamentosDTO buscarDepartamentoAbreviatura(String abreviatura) {
+        try{
+            Optional<DepartamentosEntity> registro = repo.findByAbreviatura(abreviatura);
+            if(registro.isPresent()){
+                return convertirADTO(registro.get());
+            }
+            log.warn("No existe ningun departamento con abreviatura: " + abreviatura);
+            return null;
+        }catch (Exception e){
+            log.error("Ocurrio un error durante el proceso");
+            return null;
+        }
+    }
 }
