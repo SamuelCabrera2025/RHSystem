@@ -25,6 +25,7 @@ public class DepartamentosController {
     }
 
     @PostMapping
+    //Requestbody sirve para Ingresar Datos
     public ResponseEntity<ApiResponse<DepartamentosDTO>> nuevoDepartamento(@Valid @RequestBody DepartamentosDTO json){
         try{
             //Creamos un objeto DTO porque el service.insertarDatos retornará un objeto de tipo DepartamentosDTO
@@ -59,22 +60,59 @@ public class DepartamentosController {
             return  ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(respuestaError);
         }
     }
+
+    //Todo eso es para buscar un valor en concreto
     @GetMapping("/{id}")
+    //El retono sirve para que te devuelva un objeto en especifico
     public ResponseEntity <ApiResponse<DepartamentosDTO>> obtenerDepartamentosPorId(@PathVariable Long id){
         try{
             DepartamentosDTO dto = service.buscarDepartamento(id);
             if (dto != null ){
+                log.info("Se obtuvieron los datos del departamento: " + dto);
                //Armar la respuesta utilizando ApiResponse
-                ApiResponse<DepartamentosDTO> respuestaExitosa = new ApiResponse<>( true,"Dato encontrado", dto);
+                ApiResponse<DepartamentosDTO> respuestaExitosa = new ApiResponse<>( true,"Dato encontrado" + id , dto);
                         return ResponseEntity.ok(respuestaExitosa);
             }
             ApiResponse<DepartamentosDTO> noEncontrado = new ApiResponse<>(false,"DATOS NO ENCONTRADO", null);
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body(noEncontrado);
-        }catch (Exception e){
+
+        } catch (Exception e){
             log.info("No hay departamentos registrados");
             e.printStackTrace();
-            ApiResponse<DepartamentosDTO> respuestaError = new ApiResponse<>(false,"Nose pudo completar la busqueda del ID: ",null);
+            ApiResponse<DepartamentosDTO> respuestaError = new ApiResponse<>(false,"Nose pudo completar la busqueda del ID: ", null);
             return  ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(respuestaError);
+        }
+    }
+
+    @DeleteMapping("/{id}")
+    public ResponseEntity<ApiResponse<DepartamentosDTO>> eliminarDepartamento(@PathVariable Long id) {
+        try {
+            boolean respuesta = service.eliminarInfo(id);
+            if (respuesta) {
+                ApiResponse<DepartamentosDTO> respuestaExitosa = new ApiResponse<>(
+                        true,
+                        "Dato con ID" + id + "Eliminado exitosamente",
+                        null);
+                return ResponseEntity.status(HttpStatus.NO_CONTENT).body(respuestaExitosa);
+
+            }
+            //Las siguientes lineas se ejecutaran solo si la eliminacion no se pudo completar
+            ApiResponse<DepartamentosDTO> respuestaNoRealizado = new ApiResponse<>(
+                    false,
+                    "El proceso de eliminacion no se pudo completar",
+                    null);
+            log.info("Departamento con ID: " + id + ", no fue encontrado");
+
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(respuestaNoRealizado);
+
+        }
+
+        catch (Exception e) {
+            //Log es un mensaje que queda registrado en el historial del servidor
+            log.error("Error critico , consulte con el admnistrador");
+            e.printStackTrace();
+            ApiResponse<DepartamentosDTO> respuestaError = new ApiResponse<>(false, "Error inesperado , consulte con el administrador para solucionar el problema", null);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(respuestaError);
         }
     }
 }
