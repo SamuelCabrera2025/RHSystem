@@ -10,4 +10,5 @@ import java.util.Optional;
 public interface DepartamentosRepository extends JpaRepository<DepartamentosEntity, Long> {
     //Metodos Propios
     Optional<DepartamentosEntity> findByAbreviatura(String abreviatura);
+
 }

@@ -16,6 +16,14 @@ import java.util.Map;
 @Slf4j
 @RestController
 @RequestMapping("/api/departamento")
+@CrossOrigin
+// en Spring Framework sirve para autorizar peticiones web (como llamadas Fetch o AJAX)
+// que provienen de un dominio diferente al de tu servidor backend. Por seguridad, los navegadores bloquean estas peticiones de origen cruzado;
+// esta anotación permite definir excepciones de manera controlada.
+
+
+
+
 public class DepartamentosController {
 
 
@@ -170,7 +178,7 @@ public class DepartamentosController {
         }
     }
 
-    @GetMapping("/{abr}")
+    @GetMapping("/abreviatura/{abreviatura}")
     public ResponseEntity<ApiResponse<DepartamentosDTO>> buscarPorAbreviatura(@PathVariable String abreviatura){
         try{
             DepartamentosDTO data = service.buscarDepartamentoAbreviatura(abreviatura);
@@ -190,4 +198,6 @@ public class DepartamentosController {
             return  ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(respuestaError);
         }
     }
+
+
 }
